@@ -8,7 +8,7 @@
 using namespace std;
 
 // Zadanie do wykonania na laboratorium z przedmiotu SPD
-// Grupa: Sebastian Kamraj 235273, Tomasz Dybowski ......
+// Grupa: Sebastian Kamraj 235273, Tomasz Dybowski 235885
 
 // c) algorytm Johnosa- 2,3 maszynowy
 // d) przepływ zupełny(2,3 maszynowy)
