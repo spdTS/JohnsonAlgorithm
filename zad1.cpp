@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <fstream>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -7,11 +7,10 @@
 
 using namespace std;
 
-// Zadanie do wykonania na laboratorium z przedmiotu SPD
-// Grupa: Sebastian Kamraj 235273, Tomasz Dybowski 235885
 
-// c) algorytm Johnosa- 2,3 maszynowy
-// d) przepływ zupełny(2,3 maszynowy)
+
+// a) algorytm Johnsona- 2,3 maszynowy
+// b) przepływ zupełny(1,2 maszynowy)
 class Job {
 private:
     int numberofproces = 0;
@@ -41,6 +40,12 @@ public:
         tp = a;
     }
 
+    void savesimplyforinstant(int numberofproces1, int timeofproces1, int numberofmachines1) {
+        numberofproces = numberofproces1;
+        tp = timeofproces1;
+        numberofmachines = numberofmachines1;
+    }
+
     int returnTimeofallprocess() {
 
         return tp;
@@ -67,6 +72,10 @@ public:
     void savetimeofproces(int timeofproces) {
         tp = timeofproces;
 
+    }
+    void saveNumbermachines(int i)
+    {
+        numberofmachines=i;
     }
 
     int returnNumberofmachines() {
@@ -134,40 +143,46 @@ int completeOverview2machines(vector<Job> tab, vector<Job> tab1, int numberallpr
 
 int JohnsonAlgorithm2machines(vector<Job> tab, vector<Job> tab1, int numberallprocess) {
 
-    static int endtime = 0;
-    int tabhelptime[numberallprocess];
-    int tabhelpque[numberallprocess];
-    int tabelnumbermachines[numberallprocess];
+    int tabhelpque[]={0,0,0};
     int tmp = 0;
-    int tmp2 = 0;
     int tmp3 = 0;
-    int tmp4 = 0;
+    int help=0;
+    int tim1=0,tim2=0;
+    vector<Job> virtual3;
 
+    for(int i=0;i<tab.size();i++)
+    {
+        virtual3.push_back(tab[i]);
+        virtual3.push_back(tab1[i]);
 
-    sort(tab.begin(), tab.end());
-    while (tmp3 != numberallprocess) {
-        tmp4 = 0;
-        while (tab[tmp3].returnNumberofprocess() != tab1[tmp4].returnNumberofprocess()) {
-            tmp4++;
-        }
-        if (tab[tmp3].returnTimeofallprocess() <= tab1[tmp4].returnTimeofallprocess()) {
+    }
+    sort(virtual3.begin(), virtual3.end());
+    while (tmp != numberallprocess*2) {
+        int w1=0;
+        int w2=0;
 
-            tabhelptime[tmp] = tab[tmp3].returnTimeofallprocess();
-            tabhelpque[tmp] = tab[tmp3].returnNumberofprocess();
-            tabelnumbermachines[tmp] = tab[tmp3].returnNumberofmachines();
-
-
-            tmp++;
+        if (virtual3[tmp].returnNumberofmachines() == 1) {
+            for (int i = 0; i < numberallprocess*2; i++) {
+                if (tabhelpque[i] == virtual3[tmp].returnNumberofprocess()) {
+                    w1 = 1;
+                }
+            }
+            if (w1 ==0 ) {
+                tabhelpque[help] = virtual3[tmp].returnNumberofprocess();
+                help++;
+            }
         } else {
-            ++tmp2;
-            tabhelptime[numberallprocess - tmp2] = tab1[tmp4].returnTimeofallprocess();
-            tabhelpque[numberallprocess - tmp2] = tab1[tmp4].returnNumberofprocess();
-            tabelnumbermachines[numberallprocess - tmp2] = tab1[tmp4].returnNumberofmachines();
-
-
+            for (int i = 0; i < numberallprocess*2; i++) {
+                if (tabhelpque[i] == virtual3[tmp].returnNumberofprocess()) {
+                    w2 = 1;
+                }
+            }
+            if (w2 == 0) {
+                ++tmp3;
+                tabhelpque[numberallprocess - tmp3] = virtual3[tmp].returnNumberofprocess();
+            }
         }
-
-        tmp3++;
+        tmp++;
     }
     cout << "Kolejnosc zadan ustalona przez algorytm to: " << endl;
     for (int i = 0; i < numberallprocess; i++) {
@@ -175,31 +190,37 @@ int JohnsonAlgorithm2machines(vector<Job> tab, vector<Job> tab1, int numberallpr
     }
     cout << "           " << endl;
     for (int i = 0; i < numberallprocess; i++) {
-        int tmp = 0;
-        while (tabhelpque[i] != tab1[tmp].returnNumberofprocess()) {
-            tmp++;
+        int tmphelp1 = 0, tmphelp2 = 0, tmphelp3 = 0;
+        while (tabhelpque[i] != tab[tmphelp1].returnNumberofprocess()) {
+            tmphelp1++;
         }
-        endtime = endtime + tab1[tmp].returnTimeofallprocess();
-        tmp = 0;
-        while (tabhelpque[i] != tab[tmp].returnNumberofprocess()) {
-            tmp++;
+        tim1 = tim1 + tab[tmphelp1].returnTimeofallprocess();
+        while (tabhelpque[i] != tab1[tmphelp2].returnNumberofprocess()) {
+            tmphelp2++;
         }
-        endtime = endtime + tab[tmp].returnTimeofallprocess();
+        if (i != 0 && tab[tmphelp1].returnTimeofallprocess() > tab1[tmphelp2].returnTimeofallprocess() &&
+            tim1 > tim2) {
+            int value;
+            value = tab[tmphelp1].returnTimeofallprocess() - tab1[tmphelp2].returnTimeofallprocess();
+            tim2 = tim2 + value;
+        }
+        tim2 = tim2 + tab1[tmphelp2].returnTimeofallprocess();
+        if (i == 0) {
+            tim2 = tim2 + tim1;
+        }
     }
-
-    return endtime;
-
+    cout << "Całkowity czas realizacji zadania to: " << tim2 << endl;
+    return tim2;
 
 }
 
 void JohnsonAlgorith3machines(vector<Job> tab1, vector<Job> tab2, vector<Job> tab3, int numberofprocess) {
-    vector<Job> virtual1, virtual2;
+    vector<Job> virtual1, virtual2, virtual3;
     Job example;
     int tmp = 0;
     int tmp3 = 0;
-    int tabque[numberofprocess];
-    int totalmakespan = 0;
-    int tim1 = 0, tim2 = 0, tim3 = 0;
+    int tabque[]={0,0,0,0};
+    int tim1 = 0, tim2 = 0, tim3 = 0, help = 0;
     for (int i = 0; i < numberofprocess; i++) {
         example.saveproces(tab1[i].returnNumberofprocess());
         example.savetimeofproces(tab1[i].returnTimeofallprocess() + tab2[i].returnTimeofallprocess());
@@ -211,136 +232,185 @@ void JohnsonAlgorith3machines(vector<Job> tab1, vector<Job> tab2, vector<Job> ta
         virtual2.push_back(example);
     }
     sort(virtual1.begin(), virtual1.end());
-    while (tmp != numberofprocess) {
-        int tmp2 = 0;
-        while (virtual1[tmp].returnNumberofprocess() != virtual2[tmp2].returnNumberofprocess()) {
-            tmp2++;
-        }
-        if (virtual1[tmp].returnTimeofallprocess() <= virtual2[tmp2].returnTimeofallprocess()) {
-            tabque[tmp] = virtual1[tmp].returnNumberofprocess();
+    sort(virtual2.begin(), virtual2.end());
+    for (int i = 0; i < virtual1.size() ; i++) {
+        virtual1[i].saveNumbermachines(1);
+        virtual3.push_back(virtual1[i]);
+
+
+    }
+    for(int i=0;i<virtual2.size();i++)
+    {
+        virtual2[i].saveNumbermachines(2);
+        virtual3.push_back(virtual2[i]);
+
+    }
+    sort(virtual3.begin(), virtual3.end());
+    while (tmp != 8) {
+        int w1=0;
+        int w2=0;
+
+        if (virtual3[tmp].returnNumberofmachines() == 1) {
+            for (int i = 0; i < 8; i++) {
+                if (tabque[i] == virtual3[tmp].returnNumberofprocess()) {
+                    w1 = 1;
+                }
+            }
+            if (w1 ==0 ) {
+                tabque[help] = virtual3[tmp].returnNumberofprocess();
+                help++;
+            }
         } else {
-            ++tmp3;
-            tabque[numberofprocess - tmp3] = virtual2[tmp2].returnNumberofprocess();
+            for (int i = 0; i < 8; i++) {
+                if (tabque[i] == virtual3[tmp].returnNumberofprocess()) {
+                    w2 = 1;
+                }
+            }
+            if (w2 == 0) {
+                ++tmp3;
+                tabque[numberofprocess - tmp3] = virtual3[tmp].returnNumberofprocess();
+            }
         }
         tmp++;
+    }
+
+        cout << "Kolejny procesy do wykoniania to: " << endl;
+        for (int i = 0; i < numberofprocess; i++) {
+            cout << tabque[i] << ";";
+        }
+        cout << endl;
+        for (int i = 0; i < numberofprocess; i++) {
+            int tmphelp1 = 0, tmphelp2 = 0, tmphelp3 = 0;
+            while (tabque[i] != tab1[tmphelp1].returnNumberofprocess()) {
+                tmphelp1++;
+            }
+            tim1 = tim1 + tab1[tmphelp1].returnTimeofallprocess();
+            while (tabque[i] != tab2[tmphelp2].returnNumberofprocess()) {
+                tmphelp2++;
+            }
+            if (i != 0 && tab1[tmphelp1].returnTimeofallprocess() > tab2[tmphelp2].returnTimeofallprocess() &&
+                tim1 > tim2) {
+                int value;
+                value = tab1[tmphelp1].returnTimeofallprocess() - tab2[tmphelp2].returnTimeofallprocess();
+                tim2 = tim2 + value;
+            }
+            tim2 = tim2 + tab2[tmphelp2].returnTimeofallprocess();
+            while (tabque[i] != tab3[tmphelp3].returnNumberofprocess()) {
+                tmphelp3++;
+            }
+            if (i != 0 && tab2[tmphelp2].returnTimeofallprocess() > tab3[tmphelp3].returnTimeofallprocess() &&
+                tim2 > tim3) {
+                int value;
+                value = tab2[tmphelp2].returnTimeofallprocess() - tab3[tmphelp3].returnTimeofallprocess();
+                tim3 = tim3 + value;
+            }
+            tim3 = tim3 + tab3[tmphelp3].returnTimeofallprocess();
+            if (i == 0) {
+                tim2 = tim2 + tim1;
+                tim3 = tim2 + tim3;
+            }
+
+        }
+
+        cout << "Całkowity czas realizacji zadania to: " << tim3 << endl;
+
 
     }
-    for (int i = 0; i < numberofprocess; i++) {
-        cout << "Kolejne procesy do wykonania to: " << tabque[i] << ";";
+
+    ostream &operator<<(ostream &out, Job &first) {
+        out << "Numer wykonanego procesu to: " << first.numberofproces << ", " << "czas wykonania rj to: " << first.rj
+            << endl;
+        return out;
     }
-    for (int i = 0; i < numberofprocess; i++) {
-        int tmp = 0;
-        while (tabque[i] != tab1[tmp].returnNumberofprocess()) {
-            tmp++;
+
+    int main() {
+        int n, p1[100], p2[100], p3[100];
+        ifstream data("data.txt");
+        data >> n;
+        for (int i = 0; i < n; i++) {
+            data >> p1[i] >> p2[i] >> p3[i];
         }
-        tim1 = tab1[tmp].returnTimeofallprocess();
-        tmp = 0;
-        while (tabque[i] != tab2[tmp].returnNumberofprocess()) {
-            tmp++;
-            totalmakespan = totalmakespan + tab2[tmp].returnTimeofallprocess();
-
-        }
-        tim2 = tab2[tmp].returnTimeofallprocess();
-        tmp = 0;
-        while (tabque[i] != tab3[tmp].returnNumberofprocess()) {
-            tmp++;
-        }
-        tim3 = tab3[tmp].returnTimeofallprocess();
-        if (i == 0) {
-            totalmakespan = tim1 + tim2 + tim3;
-        }
-        if (i = !0 && tim1 < tim2) {
-            totalmakespan = totalmakespan + (tim2 - tim1);
-            totalmakespan = tim1 + tim2;
-        }
-        if (i = !0 && tim2 < tim3) {
-            totalmakespan = totalmakespan + (tim3 - tim2);
-            totalmakespan = tim2 + tim3;
-        }
-
-    }
-    cout << "Całkowity czas realizacji zadania to: " << totalmakespan << endl;
+        data.close();
+        cout << " DATA " << n << endl;
 
 
-}
+        /************Koniec drugiej części************/
 
-ostream &operator<<(ostream &out, Job &first) {
-    out << "Numer wykonanego procesu to: " << first.numberofproces << ", " << "czas wykonania rj to: " << first.rj
-        << endl;
-    return out;
-}
 
-int main() {
+      Job fife;
+      vector<Job> tab1, tab2;
+      int decision;
+      cout << "Podaj liczbe procesow" << endl;
+      cin >> decision;
+      for (int i = 1; i < decision + 1; i++) {
+          int t = 1;
+          fife.savesimply(i, t);
+          tab1.push_back(fife);
+      }
+      for (int i = 1; i < decision + 1; i++) {
+          int t = 2;
+          fife.savesimply(i, t);
+          tab2.push_back(fife);
+      }
+      do
+      {
+          completeOverview2machines(tab1, tab2, decision);
+      }while (next_permutation(tab1.begin(), tab1.end()));
 
-    /****************Koniec pierwszej części*******************/
-    // Teraz wariant dla 2 maszynowego problemu
+
+        /****************Koniec drugiej części*******************/
+        // Teraz wariant dla 2 maszynowego problemu
 /*
-    Job fourth;
-    vector<Job> tab;
-    vector<Job> tab1;
-    vector<Job>::iterator it2;
-    int decision2;
-    cout << "Podaj liczbe elementow dla maszyny1: " << endl;
-    cin >> decision2;
-    for (int i = 1; i < decision2 + 1; i++) {
-        int t = 1;
-        fourth.savesimply(i, t);
-        tab.push_back(fourth);
-    }
-    cout << "Podaj liczbe elementow dla maszyny2: " << endl;
-    for (int i = 1; i < decision2 + 1; i++) {
-        int t = 2;
-        fourth.savesimply(i, t);
-        tab1.push_back(fourth);
-    }
-    int tmp;
-    tmp = JohnsonAlgorithm(tab, tab1, decision2);
-    cout << "Całkowity czas pracy maszyn to (MAKESPAN): " << tmp << endl;
-  */
-    /************Koniec drugiej części************/
-    Job fife;
-    vector<Job> tab1, tab2, tab3;
-    int decision;
-    cout << "Podaj liczbe procesow" << endl;
-    cin >> decision;
-    for (int i = 1; i < decision + 1; i++) {
-        int t = 1;
-        fife.savesimply(i, t);
-        tab1.push_back(fife);
-    }
-    for (int i = 1; i < decision + 1; i++) {
-        int t = 2;
-        fife.savesimply(i, t);
-        tab2.push_back(fife);
-    }
-    for (int i = 1; i < decision + 1; i++) {
-        int t = 3;
-        fife.savesimply(i, t);
-        tab3.push_back(fife);
-    }
-    JohnsonAlgorith3machines(tab1, tab2, tab3, decision);
+        Job fourth;
+        vector<Job> tab;
+        vector<Job> tab1;
+        vector<Job>::iterator it2;
+        int decision2;
+        cout << "Podaj liczbe elementow dla maszyny1: " << endl;
+        cin >> decision2;
+        for (int i = 1; i < decision2 + 1; i++) {
+            int t = 1;
+            fourth.savesimply(i, t);
+            tab.push_back(fourth);
+        }
+        cout << "Podaj liczbe elementow dla maszyny2: " << endl;
+        for (int i = 1; i < decision2 + 1; i++) {
+            int t = 2;
+            fourth.savesimply(i, t);
+            tab1.push_back(fourth);
+        }
+        int tmp;
+        tmp = JohnsonAlgorithm2machines(tab, tab1, decision2);
+        cout << "Całkowity czas pracy maszyn to (MAKESPAN): " << tmp << endl;
+        */
+/************Koniec trzeciej części************/
+  /*      Job fife;
+        vector<Job> tab1, tab2, tab3;
+        int tmp = 1;
 
-    /***************Koniec trzeciej części***********/
-    /* Job fife;
-     vector<Job> tab1, tab2;
-     int decision;
-     cout << "Podaj liczbe procesow" << endl;
-     cin >> decision;
-     for (int i = 1; i < decision + 1; i++) {
-         int t = 1;
-         fife.savesimply(i, t);
-         tab1.push_back(fife);
-     }
-     for (int i = 1; i < decision + 1; i++) {
-         int t = 2;
-         fife.savesimply(i, t);
-         tab2.push_back(fife);
-     }
-     //while (next_permutation(tab1.begin(), tab2.end()));
-   //  {
-         completeOverview2machines(tab1, tab2, decision);
-    // }
-     */
-    return 0;
+        for (int i = 0; i < n; i++) {
+            int t = 1;
+            fife.savesimplyforinstant(tmp, p1[i], t);
+            tab1.push_back(fife);
+            tmp++;
+        }
+        tmp = 1;
+        for (int i = 0; i < n; i++) {
+            int t = 2;
+            fife.savesimplyforinstant(tmp, p2[i], t);
+            tab2.push_back(fife);
+            tmp++;
+        }
+        tmp = 1;
+        for (int i = 0; i < n; i++) {
+            int t = 3;
+            fife.savesimplyforinstant(tmp, p3[i], t);
+            tab3.push_back(fife);
+            tmp++;
+        }
+        JohnsonAlgorith3machines(tab1, tab2, tab3, n);
+        */
+        return 0;
 
-}
+
+    }
